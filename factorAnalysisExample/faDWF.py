@@ -105,6 +105,29 @@ class CityData(object):
         #self.science.setData(selectData.loc[:, self.science.getIndicators()])
         self.health.setData(selectData.loc[:, self.health.getIndicators()])
         self.people.setData(selectData.loc[:, self.people.getIndicators()])
+    def transformToPerCapita(self):
+        #Transform some sub-indicators to per capita
+        
+        #economy
+        self.economy.df['GDP'] /= self.people.df['totalPopulation']
+        #finance
+        self.finance.df['socialFinancing'] /= self.people.df['totalPopulation']
+        self.finance.df['revenue'] /= self.people.df['totalPopulation']
+        self.finance.df['balanceDeposit'] /= self.people.df['totalPopulation']
+        #education
+        self.education.df['undergraduateStudent'] /= self.people.df['totalPopulation']
+        self.education.df['primarySchoolStudent'] /= self.people.df['totalPopulation']
+        self.education.df['juniorHighSchoolStudent'] /= self.people.df['totalPopulation']
+        self.education.df['seniorHighSchoolStudent'] /= self.people.df['totalPopulation']
+        self.education.df['elementarySchool'] /= self.people.df['totalPopulation']
+        self.education.df['secondarySchools'] /= self.people.df['totalPopulation']
+        self.education.df['higherEducationSchools'] /= self.people.df['totalPopulation']
+        #science
+        #health
+        self.health.df['medicalInstitution'] /= self.people.df['totalPopulation']
+        self.health.df['medicalPeople'] /= self.people.df['totalPopulation']
+        self.health.df['medicalBed'] /= self.people.df['totalPopulation']
+        
     def calculateFA(self):
         self.economy.FA()
         self.finance.FA()
@@ -152,6 +175,7 @@ class CityData(object):
         #log += res.json() +'\n'          
 df = CityData()
 df.setPD(sData)
+df.transformToPerCapita()
 df.calculateFA()
 log+='end log'
 r = requests.post(host+'/dwf/v1/omf/entities/Script/objects-update',
