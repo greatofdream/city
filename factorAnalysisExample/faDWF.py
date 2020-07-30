@@ -78,6 +78,11 @@ class Indicator(object):
         return 0
     def PCA(self):
         return 0
+    def renewMeanAndSigma(self):
+        #Used to re-calculate mean and sigma after transformToPerCapita()
+        self.mean = self.df.mean()
+        self.std = self.df.std()
+        
 class CityData(object):
     def __init__(self):
         self.EnglishName = ''
@@ -111,6 +116,8 @@ class CityData(object):
         #First, extract the totalPopulation data
         popCol = self.people.df['totalPopulation']
         
+        #Second, divide particular data by totalPopulation
+        
         #economy
         tmpSubIndi = ['GDP']
         self.economy.df[tmpSubIndi] = self.economy.df[tmpSubIndi].div(popCol, axis=0)
@@ -126,10 +133,25 @@ class CityData(object):
         self.education.df[tmpSubIndi] = self.education.df[tmpSubIndi].div(popCol, axis=0)
         
         #science
+        #tmpSubIndi = []
+        #self.science.df[tmpSubIndi] = self.science.df[tmpSubIndi].div(popCol, axis=0)
         
         #health
         tmpSubIndi = ['medicalInstitution', 'medicalPeople', 'medicalBed']
         self.health.df[tmpSubIndi] = self.health.df[tmpSubIndi].div(popCol, axis=0)
+        
+        #people
+        #tmpSubIndi = []
+        #self.people.df[tmpSubIndi] = self.people.df[tmpSubIndi].div(popCol, axis=0)
+        
+        #Third, re-calculate mean and sigma
+        self.economy.renewMeanAndSigma()
+        self.finance.renewMeanAndSigma()
+        self.education.renewMeanAndSigma()
+        #self.science.renewMeanAndSigma()
+        self.health.renewMeanAndSigma()
+        self.people.renewMeanAndSigma()
+        
         
     def calculateFA(self):
         self.economy.FA()
