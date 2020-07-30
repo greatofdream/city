@@ -17,7 +17,8 @@ header={"Authorization": jwt, "Content-Type": "application/json"}
 parser.add_argument('-i', dest='oids', nargs='+',default='', help='select data oids')
 args = parser.parse_args()
 print(args)
-'''
+log+= str(args.oids)+'\n'
+
 try:
     tempPipe = os.popen('pip3 list')
     packageList = tempPipe.read()
@@ -35,15 +36,15 @@ for package in packages:
             log += templog+'\n'
         except Exception as e:
             log += templog+'\n'
-'''
+
 r = requests.post(host+'/dwf/v1/omf/entities/Script/objects-update',
     headers=header,
     json=[{
     "oid": "BB9F2EBEBA85B645830793ECB220AFC1",
     "outlog": log
   }])
-print(r.json()['data'])
-#import pandas as pd, numpy as np
+#print(r.json()['data'])
+import pandas as pd, numpy as np
 
 if len(args.oids)==0:
     print('no select oid')
@@ -60,17 +61,12 @@ else:
         json={
             "condition" : "and obj.oid in ({})".format(','.join(args.oids))
         })
-r = requests.post(host+'/dwf/v1/omf/entities/Script/objects-update',
-    headers=header,
-    json=[{
-    "oid": "BB9F2EBEBA85B645830793ECB220AFC1",
-    "outlog": log
-  }])
-print(r.json())
+
+#print(r.json())
 datajson = r.json()['data']
 sData = pd.read_json(json.dumps(datajson, ensure_ascii=False), orient='records')
 # print(r.json()['data'])
-print(sData)
+print(sData.columns.values)
 
 r = requests.post(host+'/dwf/v1/omf/entities/Script/objects-update',
     headers=header,
