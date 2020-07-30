@@ -108,25 +108,28 @@ class CityData(object):
     def transformToPerCapita(self):
         #Transform some sub-indicators to per capita
         
+        #First, extract the totalPopulation data
+        popCol = self.people.df['totalPopulation']
+        
         #economy
-        self.economy.df['GDP'] /= self.people.df['totalPopulation']
+        tmpSubIndi = ['GDP']
+        self.economy.df[tmpSubIndi] = self.economy.df[tmpSubIndi].div(popCol, axis=0)
+        
         #finance
-        self.finance.df['socialFinancing'] /= self.people.df['totalPopulation']
-        self.finance.df['revenue'] /= self.people.df['totalPopulation']
-        self.finance.df['balanceDeposit'] /= self.people.df['totalPopulation']
+        tmpSubIndi = ['socialFinancing', 'revenue', 'balanceDeposit']
+        self.finance.df[tmpSubIndi] = self.finance.df[tmpSubIndi].div(popCol, axis=0)
+        
         #education
-        self.education.df['undergraduateStudent'] /= self.people.df['totalPopulation']
-        self.education.df['primarySchoolStudent'] /= self.people.df['totalPopulation']
-        self.education.df['juniorHighSchoolStudent'] /= self.people.df['totalPopulation']
-        self.education.df['seniorHighSchoolStudent'] /= self.people.df['totalPopulation']
-        self.education.df['elementarySchool'] /= self.people.df['totalPopulation']
-        self.education.df['secondarySchools'] /= self.people.df['totalPopulation']
-        self.education.df['higherEducationSchools'] /= self.people.df['totalPopulation']
+        tmpSubIndi = ['undergraduateStudent', 'primarySchoolStudent', 'juniorHighSchoolStudent', 
+                      'seniorHighSchoolStudent', 'elementarySchool', 'secondarySchools', 
+                      'higherEducationSchools']
+        self.education.df[tmpSubIndi] = self.education.df[tmpSubIndi].div(popCol, axis=0)
+        
         #science
+        
         #health
-        self.health.df['medicalInstitution'] /= self.people.df['totalPopulation']
-        self.health.df['medicalPeople'] /= self.people.df['totalPopulation']
-        self.health.df['medicalBed'] /= self.people.df['totalPopulation']
+        tmpSubIndi = ['medicalInstitution', 'medicalPeople', 'medicalBed']
+        self.health.df[tmpSubIndi] = self.health.df[tmpSubIndi].div(popCol, axis=0)
         
     def calculateFA(self):
         self.economy.FA()
