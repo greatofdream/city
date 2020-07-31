@@ -113,6 +113,7 @@ table:https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/table
 [puppeteer知乎介绍](https://zhuanlan.zhihu.com/p/40103840)
 [puppeteer官网](http://puppeteerjs.com/)
 
+[nodejs](https://www.graalvm.org/docs/reference-manual/languages/js/#running-nodejs-apps)执行与js混合执行有问题
 [selenium](https://www.selenium.dev/documentation/zh-cn/selenium_installation/installing_selenium_libraries/)
 ## Issue
 - [x] 网页预览
