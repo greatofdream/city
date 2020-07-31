@@ -101,6 +101,18 @@ Post(url, param)
 ```
 
 ### 爬虫
++ [上海](http://tjj.sh.gov.cn/tjnj/index.html),[深圳](http://tjj.sz.gov.cn/zwgk/zfxxgkml/tjsj/tjnj/index.html)是网页格式，可尝试爬取；[北京](http://43.254.24.2/ww/MenuItemAction!queryMenu)；[广州](http://112.94.72.17/portal/queryInfo/statisticsYearbook/index)
++ [北京](http://tjj.beijing.gov.cn/tjsj_31433/)是图片格式，有excel下载入口，不方便爬取，可尝试下载excel，做转换；
+
+均需要执行脚本，需要动态执行能力。nodejs `cheerio`不可使用，python `BeautifulSoup`不可以使用。
+
+测试用例： http://tjj.sh.gov.cn/tjnj/nj19.htm?d1=2019tjnj/C0201.htm
+
+table:https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/table
+
+[puppeteer知乎介绍](https://zhuanlan.zhihu.com/p/40103840)
+[puppeteer官网](http://puppeteerjs.com/)
+
 [selenium](https://www.selenium.dev/documentation/zh-cn/selenium_installation/installing_selenium_libraries/)
 ## Issue
 - [x] 网页预览
