@@ -2,6 +2,7 @@
 ## 周报云盘链接
 [链接](https://cloud.tsinghua.edu.cn/d/55c390b9538d48679617/)
 
+<a href="https://cloud.tsinghua.edu.cn/d/55c390b9538d48679617/" target="_blank">新标签页打开</a>
 ## 进度
 > Nick
 + 试验了用户创建、属性创建、实体类创建、表单创建、快速授权、模型包管理；
