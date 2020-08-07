@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import os, argparse, requests
-packages=['pandas', 'numpy', 'sklearn', 'factor-analyzer', 'json']
+packages=['pandas', 'numpy', 'sklearn', 'factor-analyzer']
 log = 'begin log\n'
 host='http://101.6.15.212:9503'
 jwt='eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTU5NTc2MTMyN30.J9Z3zbqz-kvrBJQh-0vxkx4DvSK720As6MX6ZIIZAJB9qNhSutcWPadzSX04g6PR9M9UnyItAMtohvdgmxMD7w'
@@ -26,7 +26,7 @@ try:
     #log += templog+'\n'
 except Exception as e:
     log += e +'\n'
-
+'''
 for package in packages: 
     if packageList.find(package)<0:
         print(package)
@@ -36,7 +36,7 @@ for package in packages:
             log += templog+'\n'
         except Exception as e:
             log += templog+'\n'
-
+'''
 r = requests.post(host+'/dwf/v1/omf/entities/Script/objects-update',
     headers=header,
     json=[{
@@ -116,12 +116,14 @@ class CityData(object):
         self.EnglishName = ''
         self.ChineseName = ''
         self.cityOid = ''
-        self.economy = Indicator('Economy', ['consumeLevel','CPI','GDP'])
+        self.economy = Indicator('Economy', ['CPI','GDP'])
         self.finance = Indicator('Finance', ['socialFinancing','revenue','balanceDeposit'])#'listedCompany',
         self.education = Indicator('Education', ['undergraduateStudent','primarySchoolStudent','juniorHighSchoolStudent','seniorHighSchoolStudent','elementarySchool','secondarySchools','higherEducationSchools'])#'postgraduate',
         #self.science = Indicator('Science', ['institute','institudePeople','instituteFundamentalResearch','institudePaper','institudePatent'])
         self.health = Indicator('Health', ['medicalInstitution','medicalPeople','medicalBed'])#,'medicalCost'
         self.people = Indicator('Population', ['totalPopulation','bornRate','populationIncrease'])#,'populationAverageLife'
+    def __init__(self, priIndi, relation):
+
     def readxlsx(self, filename, sheetname=0):
         selectData = pd.read_excel(filename, sheetname, header=0, skiprows=[1], index_col=None, na_values=['NA'])
         
@@ -226,7 +228,23 @@ class CityData(object):
                 json=subJson)
         #log += indi.PriIndiName+'\n'
         #log += res.json() +'\n'          
-df = CityData()
+# get priIndi and subIndi map
+r0 = requests.post(host+'/dwf/v1/omf/entities/PriIndi/objects',
+    headers=header,
+    json={
+        "condition": ""})
+priIndi = map(lambda x: x['PriIndiName'], r0.json()['data'])
+print(priIndi)
+r1 = requests.post(host+'/dwf/v1/omf/relations/PriToSub/objects',
+    headers=header,
+    json={
+        "condition": ""})
+priIndiMap = {}
+for rl in r1:
+    priIndiMap[]
+
+relation = {}
+df = CityData(relation)
 df.setPD(sData)
 df.transformToPerCapita()
 df.calculateFA()
