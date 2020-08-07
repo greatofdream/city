@@ -6,10 +6,8 @@ const process = require('process');
 // argv process
 var url = process.argv[2]
 var column = parseInt(process.argv[3])
-var oid = '6A6CE37092D49344B9C9BCBBF9EFE725'
-//process.argv[4]
-var attr = 'populationAverageLife'
-//process.argv[5]
+var oid = process.argv[4]//'6A6CE37092D49344B9C9BCBBF9EFE725'
+var attr = process.argv[5]//'populationAverageLife'
 // parameter control
 var findHeader = false;
 var findData = false;
@@ -85,7 +83,7 @@ async function getPostData(){
 		await spider(url)
 		console.log('end spider')
     // get token
-    var jwtRes = await axios.get(host+'/dwf/v1/app/login?userName=admin&password=123456',{headers:header})
+    var jwtRes = await axios.get(host+'/dwf/v1/app/login?userName=admin&password=abc123',{headers:header})
     var jwt = jwtRes.data.data
     var header={"Authorization": jwt, "Content-Type": "application/json"}
     console.log(jwt)

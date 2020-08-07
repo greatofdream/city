@@ -5,7 +5,7 @@ log = 'begin log\n'
 host='http://101.6.15.212:9503'
 jwt='eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTU5NTc2MTMyN30.J9Z3zbqz-kvrBJQh-0vxkx4DvSK720As6MX6ZIIZAJB9qNhSutcWPadzSX04g6PR9M9UnyItAMtohvdgmxMD7w'
 header={"Authorization": jwt, "Content-Type": "application/json"}
-r = requests.get(host+'/dwf/v1/app/login?userName={}&password={}'.format('admin','123456'),
+r = requests.get(host+'/dwf/v1/app/login?userName={}&password={}'.format('admin','abc123'),
     headers=header)
 # update jwt
 import json
