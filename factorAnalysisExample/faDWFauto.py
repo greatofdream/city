@@ -192,7 +192,7 @@ class CityData(object):
             subIndex = self.listIndi[self.indiIndexMap[priName]].indiIndexMap[subName]
             subJson.append({
                 "oid": rl['oid'],
-                "coeffiValue": round(self.listIndi[priIndex].coeff[subIndex][0],4),
+                "coeffiValue": abs(round(self.listIndi[priIndex].coeff[subIndex][0],4)),
                 "mean": round(self.listIndi[priIndex].mean[subIndex],4),
                 "sigma": round(self.listIndi[priIndex].sigma[subIndex],4)
             })
@@ -233,7 +233,7 @@ for sio in r2.json()['data']:
         divSubIndi.append(sio['SubIndiName'])
 print(negSubIndi)
 print(divSubIndi)
-exit(0)
+
 # storage priIndi
 priIndis = priIndiOids.values()
 r1 = requests.post(host+'/dwf/v1/omf/relations/PriToSub/objects',
