@@ -105,6 +105,8 @@ class Indicator(object):
         print(ev)
         # Print loadings
         print(fa.loadings_)
+        print(self.mean)
+        print(self.sigma)
         self.coeff = fa.loadings_
         return 0
     def PCA(self):
@@ -190,9 +192,9 @@ class CityData(object):
             subIndex = self.listIndi[self.indiIndexMap[priName]].indiIndexMap[subName]
             subJson.append({
                 "oid": rl['oid'],
-                "coeffiValue": round(self.listIndi[priIndex].coeff[subIndex][0],2),
-                "mean": round(self.listIndi[priIndex].mean[subIndex],2),
-                "sigma": round(self.listIndi[priIndex].sigma[subIndex],2)
+                "coeffiValue": round(self.listIndi[priIndex].coeff[subIndex][0],4),
+                "mean": round(self.listIndi[priIndex].mean[subIndex],4),
+                "sigma": round(self.listIndi[priIndex].sigma[subIndex],4)
             })
         res = requests.post(host+'/dwf/v1/omf/relations/PriToSub/objects-update',
                 headers=header,
@@ -215,12 +217,23 @@ r2 = requests.post(host+'/dwf/v1/omf/entities/SubIndi/objects',
         "condition": ""})
 # storage (oid,subIndi)
 subIndiOids = {}
+'''
 divSubIndi = ['TotalRetailSalesofConsumerGoods', 'TotalImportsandExports', 'GDP', 'TotalWasteWater', 'LoansInFinanInsititutions', 'DepositsInFinanInsititutions', 'revenue', 
         'undergraduateStudent', 'primarySchoolStudent', 'juniorHighSchoolStudent', 'seniorHighSchoolStudent', 'elementarySchool', 'secondarySchools', 
         'higherEducationSchools', 'medicalInstitution', 'medicalPeople', 'medicalBed']
+'''
+populationScale=100000
+divSubIndi = []
+negSubIndi = []
 for sio in r2.json()['data']:
     subIndiOids[sio['oid']] = sio['SubIndiName']
-
+    if sio['needNegtive']:
+        negSubIndi.append(sio['SubIndiName'])
+    if sio['needNomal']:
+        divSubIndi.append(sio['SubIndiName'])
+print(negSubIndi)
+print(divSubIndi)
+exit(0)
 # storage priIndi
 priIndis = priIndiOids.values()
 r1 = requests.post(host+'/dwf/v1/omf/relations/PriToSub/objects',
@@ -234,9 +247,12 @@ for i in priIndis:
 for rl in r1.json()['data']:
     priIndiMap[priIndiOids[rl['leftOid']]].append(subIndiOids[rl['rightOid']]) 
 print(priIndiMap)
+# needNormal
+# needNeg
 df = CityData(priIndis, priIndiMap)
 # transfromToPerCapita directly
-sData[divSubIndi] = sData[divSubIndi].div(sData['totalPopulation'], axis=0)
+sData[divSubIndi] = sData[divSubIndi].div(sData['totalPopulation']/populationScale, axis=0)
+sData[negSubIndi] = -sData[negSubIndi]
 df.setPD(sData)
 # df.transformToPerCapita(sData['totalPopulation'])
 df.calculateFA()
