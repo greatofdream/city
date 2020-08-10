@@ -31,7 +31,7 @@ for package in packages:
     if packageList.find(package)<0:
         print(package)
         try:
-            tempPipe = os.popen('pip3 install {} -i https://pypi.tuna.tsinghua.edu.cn/simple'.format(package))
+            tempPipe = os.popen('pip3 install {}'.format(package))
             templog = tempPipe.read()
             log += templog+'\n'
         except Exception as e:
@@ -82,8 +82,11 @@ class Indicator(object):
     def __init__(self, name, subIndicators):
         self.indicatorName = name
         self.subIndicators = {}
+        self.indiIndexMap = {}
         for si in subIndicators:
             self.subIndicators[si] = 1
+        for i, si in enumerate(self.subIndicators.keys()):
+            self.indiIndexMap[si] = i
     def getIndicators(self):
         return self.subIndicators.keys()
     def setData(self, timeData):
@@ -102,6 +105,8 @@ class Indicator(object):
         print(ev)
         # Print loadings
         print(fa.loadings_)
+        print(self.mean)
+        print(self.sigma)
         self.coeff = fa.loadings_
         return 0
     def PCA(self):
@@ -123,23 +128,17 @@ class CityData(object):
         self.health = Indicator('Health', ['medicalInstitution','medicalPeople','medicalBed'])#,'medicalCost'
         self.people = Indicator('Population', ['totalPopulation','bornRate','populationIncrease'])#,'populationAverageLife'
     def __init__(self, priIndi, relation):
-
-    def readxlsx(self, filename, sheetname=0):
-        selectData = pd.read_excel(filename, sheetname, header=0, skiprows=[1], index_col=None, na_values=['NA'])
-        
-        self.economy.setData(selectData.loc[:, self.economy.getIndicators()])
-        self.finance.setData(selectData.loc[:, self.finance.getIndicators()])
-        self.education.setData(selectData.loc[:, self.education.getIndicators()])
-        #self.science.setData(selectData.loc[:, self.science.getIndicators()])
-        self.health.setData(selectData.loc[:, self.health.getIndicators()])
-        self.people.setData(selectData.loc[:, self.people.getIndicators()])
+        self.priIndi = priIndi
+        self.priLength = len(priIndi)
+        self.relation = relation
+        self.listIndi = []
+        self.indiIndexMap = {}
+        for i, pi in enumerate(priIndi):
+            self.listIndi.append(Indicator(pi, relation[pi]))
+            self.indiIndexMap[pi] = i
     def setPD(self, selectData):
-        self.economy.setData(selectData.loc[:, self.economy.getIndicators()])
-        self.finance.setData(selectData.loc[:, self.finance.getIndicators()])
-        self.education.setData(selectData.loc[:, self.education.getIndicators()])
-        #self.science.setData(selectData.loc[:, self.science.getIndicators()])
-        self.health.setData(selectData.loc[:, self.health.getIndicators()])
-        self.people.setData(selectData.loc[:, self.people.getIndicators()])
+        for i in range(self.priLength):
+            self.listIndi[i].setData(selectData.loc[:, self.listIndi[i].getIndicators()])
     def transformToPerCapita(self):
         #Transform some sub-indicators to per capita
         
@@ -180,71 +179,82 @@ class CityData(object):
         self.education.renewMeanAndSigma()
         #self.science.renewMeanAndSigma()
         self.health.renewMeanAndSigma()
-        self.people.renewMeanAndSigma()
-        
-        
+        self.people.renewMeanAndSigma()   
     def calculateFA(self):
-        self.economy.FA()
-        self.finance.FA()
-        self.education.FA()
-        #self.science.FA()
-        self.health.FA()
-        self.people.FA()
-    def setDWF(self):
-        self.setDWFcoeff(self.economy)
-        self.setDWFcoeff(self.finance)
-        self.setDWFcoeff(self.education)
-        #self.setDWFcoeff(self.science)
-        self.setDWFcoeff(self.health)
-        self.setDWFcoeff(self.people)
-    def setDWFcoeff(self, indi):
-        r0 = requests.post(host+'/dwf/v1/omf/entities/PriIndi/objects',
-            headers=header,
-            json={
-                "condition": "and obj.PriIndiName='{}'".format(indi.indicatorName)})
-        priOid = r0.json()['data'][0]['oid']
-        r1 = requests.post(host+'/dwf/v1/omf/entities/SubIndi/objects',
-            headers=header,
-            json={})
-        subMap = {}
-        for sm in r1.json()['data']:
-            subMap[sm['SubIndiName']] = sm['oid']
-        r2 = requests.post(host+'/dwf/v1/omf/relations/PriToSub/objects',
-            headers=header,
-            json={
-                "condition": "and obj.leftOid='{}'".format(priOid)})
-        relationList = r2.json()['data']
-        relationMap = {}
-        for rl in relationList:
-            relationMap[rl['rightOid']] = rl['oid'] 
-        subJson = [{
-                    "oid": relationMap[subMap[si]],
-                    "coeffiValue": round(indi.coeff[i][0],2),
-                    "mean": round(indi.mean[i],2),
-                    "sigma": round(indi.sigma[i],2)
-                } for i,si in enumerate(indi.subIndicators)]
+        for i in range(self.priLength):
+            self.listIndi[i].FA()
+    def setDWF(self, relation, priIndiOids, subIndiOids):
+        subJson = []
+        for rl in relation:
+            priName = priIndiOids[rl['leftOid']]
+            subName = subIndiOids[rl['rightOid']]
+            priIndex = self.indiIndexMap[priName]
+            subIndex = self.listIndi[self.indiIndexMap[priName]].indiIndexMap[subName]
+            subJson.append({
+                "oid": rl['oid'],
+                "coeffiValue": abs(round(self.listIndi[priIndex].coeff[subIndex][0],4)),
+                "mean": round(self.listIndi[priIndex].mean[subIndex],4),
+                "sigma": round(self.listIndi[priIndex].sigma[subIndex],4)
+            })
         res = requests.post(host+'/dwf/v1/omf/relations/PriToSub/objects-update',
                 headers=header,
                 json=subJson)
-        #log += indi.PriIndiName+'\n'
-        #log += res.json() +'\n'          
 # get priIndi and subIndi map
-'''
 r0 = requests.post(host+'/dwf/v1/omf/entities/PriIndi/objects',
     headers=header,
     json={
         "condition": ""})
-priIndi = map(lambda x: x['PriIndiName'], r0.json()['data'])
-print(priIndi)
+# storage (oid,priIndi)
+priIndiOids = {}
+for pio in r0.json()['data']:
+    priIndiOids[pio['oid']] = pio['PriIndiName']
+
+print(priIndiOids)
+# subindis
+r2 = requests.post(host+'/dwf/v1/omf/entities/SubIndi/objects',
+    headers=header,
+    json={
+        "condition": ""})
+# storage (oid,subIndi)
+subIndiOids = {}
+'''
+divSubIndi = ['TotalRetailSalesofConsumerGoods', 'TotalImportsandExports', 'GDP', 'TotalWasteWater', 'LoansInFinanInsititutions', 'DepositsInFinanInsititutions', 'revenue', 
+        'undergraduateStudent', 'primarySchoolStudent', 'juniorHighSchoolStudent', 'seniorHighSchoolStudent', 'elementarySchool', 'secondarySchools', 
+        'higherEducationSchools', 'medicalInstitution', 'medicalPeople', 'medicalBed']
+'''
+populationScale=100000
+divSubIndi = []
+negSubIndi = []
+for sio in r2.json()['data']:
+    subIndiOids[sio['oid']] = sio['SubIndiName']
+    if sio['needNegtive']:
+        negSubIndi.append(sio['SubIndiName'])
+    if sio['needNomal']:
+        divSubIndi.append(sio['SubIndiName'])
+print(negSubIndi)
+print(divSubIndi)
+
+# storage priIndi
+priIndis = priIndiOids.values()
 r1 = requests.post(host+'/dwf/v1/omf/relations/PriToSub/objects',
     headers=header,
     json={
         "condition": ""})
-'''
-relation = {}
-df = CityData()
+# storage (priIndi:[subIndi])
+priIndiMap = {}
+for i in priIndis:
+    priIndiMap[i] = []
+for rl in r1.json()['data']:
+    priIndiMap[priIndiOids[rl['leftOid']]].append(subIndiOids[rl['rightOid']]) 
+print(priIndiMap)
+# needNormal
+# needNeg
+df = CityData(priIndis, priIndiMap)
+# transfromToPerCapita directly
+sData[divSubIndi] = sData[divSubIndi].div(sData['totalPopulation']/populationScale, axis=0)
+sData[negSubIndi] = -sData[negSubIndi]
 df.setPD(sData)
-df.transformToPerCapita()
+# df.transformToPerCapita(sData['totalPopulation'])
 df.calculateFA()
 log+='end log'
 r = requests.post(host+'/dwf/v1/omf/entities/Script/objects-update',
@@ -253,7 +263,7 @@ r = requests.post(host+'/dwf/v1/omf/entities/Script/objects-update',
     "oid": "BB9F2EBEBA85B645830793ECB220AFC1",
     "outlog": log
   }])
-df.setDWF()
+df.setDWF(r1.json()['data'], priIndiOids, subIndiOids)
 
 
 
